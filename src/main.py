@@ -102,7 +102,7 @@ class PasswordManagerGui:
         self.add_password_submit = tk.Button(self.root, text="Submit", command=self.add_password)
 
         # Change website password btn (hidden initially)
-        self.change_website_password_btn = tk.Button(self.root, text="Change website-password", command=self.show_change_website_password)
+        self.change_website_password_btn = tk.Button(self.root, text="Change Website-password", command=self.show_change_website_password)
 
         # Change website password fields (hidden initially)
         self.change_website_password_label = tk.Label(self.root, text="New password (leave empty to generate strong password):")
@@ -110,12 +110,26 @@ class PasswordManagerGui:
         self.change_website_password_submit = tk.Button(self.root, text="Submit", command=self.change_website_password)
 
         # Change website username btn (hidden initially)
-        self.change_website_username_btn = tk.Button(self.root, text="Change website-username", command=self.show_change_website_username)
+        self.change_website_username_btn = tk.Button(self.root, text="Change Website-username", command=self.show_change_website_username)
 
         # Change website username fields (hidden initially)
         self.change_website_username_label = tk.Label(self.root, text="New username:")
         self.change_website_username_entry = tk.Entry(self.root)
         self.change_website_username_submit = tk.Button(self.root, text="Submit", command=self.change_website_username)
+
+        # Delete password btn (hidden initially)
+        self.delete_password_btn = tk.Button(self.root, text="Delete Password", command=self.show_delete_password)
+
+        # Delete password fields (hidden initially)
+        self.website_name_label = tk.Label(self.root, text="Name of the website/service:")
+        self.website_name_entry = tk.Entry(self.root)
+        self.delete_password_submit = tk.Button(self.root, text="Submit", command=self.delete_password)
+
+        # View passwords btn (hidden initially)
+        self.view_passwords_btn = tk.Button(self.root, text="View Passwords", command=self.show_view_passwords)
+
+        # View passwords btn (hidden initially)
+        self.view_passwords_submit = tk.Button(self.root, text="Show My Passwords", command=self.view_passwords)
 
     def hide_all_widgets(self):
         for widget in self.root.pack_slaves():
@@ -247,6 +261,8 @@ class PasswordManagerGui:
         self.add_password_btn.pack(pady=10)
         self.change_website_password_btn.pack(pady=10)
         self.change_website_username_btn.pack(pady=10)
+        self.delete_password_btn.pack(pady=10)
+        self.view_passwords_btn.pack(pady=10)
         self.back_btn.pack(pady=10)
 
     def show_change_password(self):
@@ -376,6 +392,54 @@ class PasswordManagerGui:
         else:
             messagebox.showerror("Error", "No such website/service!")
 
+    def show_delete_password(self):
+        self.hide_all_widgets()
+        self.website_name_label.pack(pady=10)
+        self.website_name_entry.pack(pady=10)
+        self.delete_password_submit.pack(pady=10)
+        self.back_dashboard_btn.pack(pady=10)
+
+    def delete_password(self):
+        user_id = self.get_user_id(self.current_user)
+        website = self.website_name_entry.get()
+        self.cursor.execute(
+            "SELECT website FROM passwords WHERE user_id = ?",
+            (user_id,)
+        )
+        websites = self.cursor.fetchall()
+        website_exists = [website in [w[0] for w in websites]][0]
+        if website_exists:
+            self.cursor.execute(
+                "DELETE FROM passwords WHERE user_id = ? and website = ?",
+                (user_id, website)
+            )
+            self.conn.commit()
+            messagebox.showinfo("Success", f"Password deleted successfully")
+            self.show_user_dashboard()
+        else:
+            messagebox.showerror("Error", "No such website/service!")
+
+    def show_view_passwords(self):
+        self.hide_all_widgets()
+        self.view_passwords_submit.pack(pady=(130, 0), anchor="n")
+        self.back_dashboard_btn.pack(pady=10)
+
+    def view_passwords(self):
+        user_id = self.get_user_id(self.current_user)
+        self.cursor.execute(
+            "SELECT user_id, website, username, password FROM passwords WHERE user_id = ?",
+            (user_id,))
+        passwords = self.cursor.fetchall()
+        if passwords:
+            for password in passwords:
+                decrypted_password = self.cipher.decrypt(password[3].encode()).decode()
+                messagebox.showinfo(
+                    "Your Passwords",
+                    f"User ID: {password[0]} - Website/Service: {password[1]} - Username: {password[2]} - Password: {decrypted_password}"
+                    )
+            self.show_user_dashboard()
+        else:
+            messagebox.showerror("Error", "You haven't add any passwords yet.")
 
     def run(self):
         self.root.mainloop()
