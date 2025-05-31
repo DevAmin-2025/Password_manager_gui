@@ -46,6 +46,7 @@ class PasswordManagerGui:
         self.conn = conn
         self.cursor = cursor
         self.current_action = ""
+        self.current_user = ""
         self.password_visible = tk.BooleanVar()
         self.setup_ui()
 
@@ -75,7 +76,30 @@ class PasswordManagerGui:
             text="Show Password",
             variable=self.password_visible,
             command=self.toggle_password
-            )
+        )
+
+        # Change password btn (hidden initially)
+        self.change_password_btn = tk.Button(self.root, text="Change Password", command=self.show_change_password)
+
+        # Change password fields (hidden initially)
+        self.new_password_label = tk.Label(self.root, text="New password (leave empty to generate strong password):")
+        self.new_password_entry = tk.Entry(self.root, show="*")
+        self.change_password_submit = tk.Button(self.root, text="Update Password", command=self.change_password)
+
+        # Back to dashboard btn
+        self.back_dashboard_btn = tk.Button(self.root, text="Back", comman=self.show_user_dashboard)
+
+        # Add password btn (hidden initially)
+        self.add_password_btn = tk.Button(self.root, text="Add Password", command=self.show_add_password)
+
+        # Add password fields (hidden initially)
+        self.website_name_label = tk.Label(self.root, text="Name of the website/service:")
+        self.website_name_entry = tk.Entry(self.root)
+        self.website_username_label = tk.Label(self.root, text="Username for the website/service:")
+        self.website_username_entry = tk.Entry(self.root)
+        self.website_password_label = tk.Label(self.root, text="Password:")
+        self.website_password_entry = tk.Entry(self.root, show="*")
+        self.add_password_submit = tk.Button(self.root, text="Submit", command=self.add_password)
 
     def hide_all_widgets(self):
         for widget in self.root.pack_slaves():
@@ -84,6 +108,8 @@ class PasswordManagerGui:
     def toggle_password(self):
         char = "" if self.password_visible.get() else "*"
         self.password_entry.config(show=char)
+        self.new_password_entry.config(show=char)
+        self.website_password_entry.config(show=char)
 
     def show_main_menu(self):
         self.hide_all_widgets()
@@ -149,6 +175,15 @@ class PasswordManagerGui:
         self.submit_btn.pack(pady=10)
         self.back_btn.pack(pady=10)
 
+    def get_user_id(self, name):
+        self.cursor.execute(
+            "SELECT user_id FROM users WHERE name = ?",
+            (name,)
+            )
+        user = self.cursor.fetchone()
+        user_id = user[0]
+        return user_id
+
     def process_action(self):
         name = self.username_entry.get()
         password = self.password_entry.get()
@@ -180,25 +215,86 @@ class PasswordManagerGui:
                 decrypted_password = cipher.decrypt(user[0].encode()).decode()
                 if decrypted_password == password:
                     messagebox.showinfo("Success", f"Login successful! Welcome {name}")
-                    self.show_user_dashboard(name)
+                    self.current_user = name
+                    self.show_user_dashboard()
                 else:
                     messagebox.showerror("Error", "Incorrect password. Try again")
             else:
                 messagebox.showerror("Error", "User does not exist. Please register first.")
 
-    def show_user_dashboard(self, name):
-        pass
+    def show_user_dashboard(self):
+        self.hide_all_widgets()
+        tk.Label(self.root, text=f"Welcome {self.current_user}").pack(pady=10)
+
+        self.change_password_btn.pack(pady=10)
+        self.add_password_btn.pack(pady=10)
+        self.back_btn.pack(pady=10)
+
+    def show_change_password(self):
+        self.hide_all_widgets()
+        self.new_password_label.pack(pady=10)
+        self.new_password_entry.pack(pady=10)
+        self.toggle_visibility.pack(pady=10)
+        self.change_password_submit.pack(pady=10)
+        self.back_dashboard_btn.pack(pady=10)
+
+    def change_password(self):
+        new_password = self.new_password_entry.get()
+        show_pass = False
+        if not new_password.strip():
+            new_password = self.generate_strong_password()
+            show_pass = True
+
+        encrypted_password = cipher.encrypt(new_password.encode()).decode()
+
+        cursor.execute("UPDATE users SET password = ? WHERE name = ?", (encrypted_password, self.current_user))
+        conn.commit()
+        messagebox.showinfo("Success", "Password updated successfully!")
+        if show_pass:
+            self.show_password(new_password)
+        self.show_main_menu()
+
+    def show_add_password(self):
+        self.hide_all_widgets()
+        self.website_name_label.pack(pady=10)
+        self.website_name_entry.pack(pady=10)
+        self.website_username_label.pack(pady=10)
+        self.website_username_entry.pack(pady=10)
+        self.website_password_label.pack(pady=10)
+        self.website_password_entry.pack(pady=10)
+        self.toggle_visibility.pack(pady=10)
+        self.add_password_submit.pack(pady=10)
+        self.back_dashboard_btn.pack(pady=10)
+
+    def add_password(self):
+        user_id = self.get_user_id(self.current_user)
+        website = self.website_name_entry.get()
+        username = self.website_username_entry.get()
+        password = self.website_password_entry.get()
+        if not website.strip() or not username.strip() or not password.strip():
+            messagebox.showerror("Error", "Missing information. Fill all the fields")
+            return
+        encrypted_password = self.cipher.encrypt(password.encode()).decode()
+        self.cursor.execute(
+            "INSERT INTO passwords (user_id, website, username, password) VALUES (?, ?, ?, ?)",
+            (user_id, website, username, encrypted_password)
+        )
+        self.conn.commit()
+        messagebox.showinfo("Success", "Password added successfully!")
+        self.show_user_dashboard()
+
+
+
+
+
+
+
+
+
 
 
     def run(self):
         self.root.mainloop()
-
-
-
-
-
-
-
 
 
 if __name__ == "__main__":
