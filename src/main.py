@@ -97,9 +97,25 @@ class PasswordManagerGui:
         self.website_name_entry = tk.Entry(self.root)
         self.website_username_label = tk.Label(self.root, text="Username for the website/service:")
         self.website_username_entry = tk.Entry(self.root)
-        self.website_password_label = tk.Label(self.root, text="Password:")
+        self.website_password_label = tk.Label(self.root, text="Password (leave empty to generate strong password):")
         self.website_password_entry = tk.Entry(self.root, show="*")
         self.add_password_submit = tk.Button(self.root, text="Submit", command=self.add_password)
+
+        # Change website password btn (hidden initially)
+        self.change_website_password_btn = tk.Button(self.root, text="Change website-password", command=self.show_change_website_password)
+
+        # Change website password fields (hidden initially)
+        self.change_website_password_label = tk.Label(self.root, text="New password (leave empty to generate strong password):")
+        self.change_website_password_entry = tk.Entry(self.root, show="*")
+        self.change_website_password_submit = tk.Button(self.root, text="Submit", command=self.change_website_password)
+
+        # Change website username btn (hidden initially)
+        self.change_website_username_btn = tk.Button(self.root, text="Change website-username", command=self.show_change_website_username)
+
+        # Change website username fields (hidden initially)
+        self.change_website_username_label = tk.Label(self.root, text="New username:")
+        self.change_website_username_entry = tk.Entry(self.root)
+        self.change_website_username_submit = tk.Button(self.root, text="Submit", command=self.change_website_username)
 
     def hide_all_widgets(self):
         for widget in self.root.pack_slaves():
@@ -110,6 +126,7 @@ class PasswordManagerGui:
         self.password_entry.config(show=char)
         self.new_password_entry.config(show=char)
         self.website_password_entry.config(show=char)
+        self.change_website_password_entry.config(show=char)
 
     def show_main_menu(self):
         self.hide_all_widgets()
@@ -228,6 +245,8 @@ class PasswordManagerGui:
 
         self.change_password_btn.pack(pady=10)
         self.add_password_btn.pack(pady=10)
+        self.change_website_password_btn.pack(pady=10)
+        self.change_website_username_btn.pack(pady=10)
         self.back_btn.pack(pady=10)
 
     def show_change_password(self):
@@ -271,9 +290,13 @@ class PasswordManagerGui:
         website = self.website_name_entry.get()
         username = self.website_username_entry.get()
         password = self.website_password_entry.get()
-        if not website.strip() or not username.strip() or not password.strip():
-            messagebox.showerror("Error", "Missing information. Fill all the fields")
+        if not website.strip() or not username.strip():
+            messagebox.showerror("Error", "Missing information")
             return
+        show_pass = False
+        if not password.strip():
+            password = self.generate_strong_password()
+            show_pass = True
         encrypted_password = self.cipher.encrypt(password.encode()).decode()
         self.cursor.execute(
             "INSERT INTO passwords (user_id, website, username, password) VALUES (?, ?, ?, ?)",
@@ -281,16 +304,77 @@ class PasswordManagerGui:
         )
         self.conn.commit()
         messagebox.showinfo("Success", "Password added successfully!")
+        if show_pass:
+            self.show_password(password)
         self.show_user_dashboard()
 
+    def show_change_website_password(self):
+        self.hide_all_widgets()
+        self.website_name_label.pack(pady=10)
+        self.website_name_entry.pack(pady=10)
+        self.change_website_password_label.pack(pady=10)
+        self.change_website_password_entry.pack(pady=10)
+        self.toggle_visibility.pack(pady=10)
+        self.change_website_password_submit.pack(pady=10)
+        self.back_dashboard_btn.pack(pady=10)
 
+    def change_website_password(self):
+        user_id = self.get_user_id(self.current_user)
+        website = self.website_name_entry.get()
+        new_password = self.change_website_password_entry.get()
+        self.cursor.execute(
+            "SELECT website FROM passwords WHERE user_id = ?",
+            (user_id,)
+        )
+        websites = self.cursor.fetchall()
+        website_exists = [website in [w[0] for w in websites]][0]
+        if website_exists:
+            show_pass = False
+            if not new_password.strip():
+                new_password = self.generate_strong_password()
+                show_pass = True
+            encrypted_password = self.cipher.encrypt(new_password.encode()).decode()
+            self.cursor.execute(
+                "UPDATE passwords set password = ? WHERE user_id = ? and website = ?",
+                (encrypted_password, user_id, website)
+            )
+            self.conn.commit()
+            messagebox.showinfo("Success", f"Password changed successfully for {website}!")
+            if show_pass:
+                self.show_password(new_password)
+            self.show_user_dashboard()
+        else:
+            messagebox.showerror("Error", "No such website/service!")
 
+    def show_change_website_username(self):
+        self.hide_all_widgets()
+        self.website_name_label.pack(pady=10)
+        self.website_name_entry.pack(pady=10)
+        self.change_website_username_label.pack(pady=10)
+        self.change_website_username_entry.pack(pady=10)
+        self.change_website_username_submit.pack(pady=10)
+        self.back_dashboard_btn.pack(pady=10)
 
-
-
-
-
-
+    def change_website_username(self):
+        user_id = self.get_user_id(self.current_user)
+        website = self.website_name_entry.get()
+        self.cursor.execute(
+            "SELECT website FROM passwords WHERE user_id = ?",
+            (user_id,)
+        )
+        websites = self.cursor.fetchall()
+        website_exists = [website in [w[0] for w in websites]][0]
+        if website_exists:
+            new_username = self.change_website_username_entry.get()
+            self.cursor.execute(
+                "UPDATE passwords set username = ? WHERE user_id = ? and website = ?",
+                (new_username, user_id, website)
+            )
+            self.conn.commit()
+            messagebox.showinfo("Success", f"Username changed successfully for {website}")
+            self.show_user_dashboard()
+        else:
+            messagebox.showerror("Error", "No such website/service!")
 
 
     def run(self):
