@@ -13,9 +13,9 @@ A secure password management application built using Python, Tkinter, SQLite, an
 ```
 PASSWORD_MANAGER
 ├── data
-│   └── password_manager.db  # Stores encrypted user and password data
+│   └── password_manager.db  # Stores encrypted user and password data (will be created after the first run)
 ├── key
-│   └── encryption_key.key   # Encryption key used for password protection
+│   └── encryption_key.key   # Encryption key used for password protection (will be created after the first run)
 ├── src
 │   ├── config.py            # Handles database and encryption setup
 │   ├── main.py              # Entry point for running the application
