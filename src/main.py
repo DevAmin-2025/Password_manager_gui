@@ -5,6 +5,7 @@ from src.password_manager import PasswordManagerGui
 
 if __name__ == "__main__":
     root = tk.Tk()
+    root.resizable(False, False)
     root.title("Password Manager")
     root.geometry("600x400")
     root.update_idletasks()

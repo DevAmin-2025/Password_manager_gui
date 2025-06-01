@@ -35,28 +35,30 @@ class PasswordManagerGui:
 
     def setup_ui(self):
         """Set up the main UI components for the password manager."""
+        custom_btn_width = 20
+        custom_entry_width = 24
         # Show register btn
         self.register_btn = tk.Button(
-            self.root, text="Register", font=self.custom_font, width=20, command=self.show_register
+            self.root, text="Register", font=self.custom_font, width=custom_btn_width, command=self.show_register
             )
         self.register_btn.pack(pady=(130, 0), anchor="n")
 
         # Show login btn
         self.login_btn = tk.Button(
-            self.root, text="Login", width=20, font=self.custom_font, command=self.show_login
+            self.root, text="Login", width=custom_btn_width, font=self.custom_font, command=self.show_login
             )
         self.login_btn.pack(pady=10)
 
         # Show register and login fields (hidden initially)
         self.username_label = tk.Label(self.root, font=self.custom_font, text="Username:")
-        self.username_entry = tk.Entry(self.root)
+        self.username_entry = tk.Entry(self.root, width=custom_entry_width)
         self.password_label = tk.Label(self.root, font=self.custom_font, text="Password (leave empty to generate strong password):")
-        self.password_entry = tk.Entry(self.root, show="*")
-        self.submit_btn = tk.Button(self.root, text="Submit", font=self.custom_font, width=20, command=self.process_action)
+        self.password_entry = tk.Entry(self.root, show="*", width=custom_entry_width)
+        self.submit_btn = tk.Button(self.root, text="Submit", font=self.custom_font, width=custom_btn_width, command=self.process_action)
         self.login_password_label = tk.Label(self.root, text="Password:", font=self.custom_font)
 
         # Back btn (hidden initially)
-        self.back_btn = tk.Button(self.root, text="Back", font=self.custom_font, width=20, comman=self.show_main_menu)
+        self.back_btn = tk.Button(self.root, text="Back", font=self.custom_font, width=custom_btn_width, comman=self.show_main_menu)
 
         # Toggle password visibility
         self.toggle_visibility = tk.Checkbutton(
@@ -69,72 +71,72 @@ class PasswordManagerGui:
 
         # Change password btn (hidden initially)
         self.change_password_btn = tk.Button(
-            self.root, text="Change Password", font=self.custom_font, width=20, command=self.show_change_password
+            self.root, text="Change Password", font=self.custom_font, width=custom_btn_width, command=self.show_change_password
             )
 
         # Change password fields (hidden initially)
         self.new_password_label = tk.Label(self.root, font=self.custom_font, text="New password (leave empty to generate strong password):")
-        self.new_password_entry = tk.Entry(self.root, show="*")
+        self.new_password_entry = tk.Entry(self.root, show="*", width=custom_entry_width)
         self.change_password_submit = tk.Button(
-            self.root, text="Update Password", width=20, font=self.custom_font, command=self.change_password
+            self.root, text="Update Password", width=custom_btn_width, font=self.custom_font, command=self.change_password
             )
 
         # Back to dashboard btn
-        self.back_dashboard_btn = tk.Button(self.root, text="Back", font=self.custom_font, width=20, command=self.show_user_dashboard)
+        self.back_dashboard_btn = tk.Button(self.root, text="Back", font=self.custom_font, width=custom_btn_width, command=self.show_user_dashboard)
 
         # Add password btn (hidden initially)
-        self.add_password_btn = tk.Button(self.root, text="Add Password", font=self.custom_font, width=20, command=self.show_add_password)
+        self.add_password_btn = tk.Button(self.root, text="Add Password", font=self.custom_font, width=custom_btn_width, command=self.show_add_password)
 
         # Add password fields (hidden initially)
         self.website_name_label = tk.Label(self.root, font=self.custom_font, text="Name of the website/service:")
-        self.website_name_entry = tk.Entry(self.root)
+        self.website_name_entry = tk.Entry(self.root, width=custom_entry_width)
         self.website_username_label = tk.Label(self.root, font=self.custom_font, text="Username for the website/service:")
-        self.website_username_entry = tk.Entry(self.root)
+        self.website_username_entry = tk.Entry(self.root, width=custom_entry_width)
         self.website_password_label = tk.Label(self.root, font=self.custom_font, text="Password (leave empty to generate strong password):")
-        self.website_password_entry = tk.Entry(self.root, show="*")
-        self.add_password_submit = tk.Button(self.root, text="Submit", font=self.custom_font, width=20, command=self.add_password)
+        self.website_password_entry = tk.Entry(self.root, show="*", width=custom_entry_width)
+        self.add_password_submit = tk.Button(self.root, text="Submit", font=self.custom_font, width=custom_btn_width, command=self.add_password)
 
         # Change website password btn (hidden initially)
         self.change_website_password_btn = tk.Button(
-            self.root, text="Change Website-password", font=self.custom_font, width=20, command=self.show_change_website_password
+            self.root, text="Change Website-password", font=self.custom_font, width=custom_btn_width, command=self.show_change_website_password
             )
 
         # Change website password fields (hidden initially)
         self.change_website_password_label = tk.Label(
             self.root, font=self.custom_font, text="New password (leave empty to generate strong password):"
             )
-        self.change_website_password_entry = tk.Entry(self.root, show="*")
+        self.change_website_password_entry = tk.Entry(self.root, show="*", width=custom_entry_width)
         self.change_website_password_submit = tk.Button(
-            self.root, text="Submit", width=20, font=self.custom_font, command=self.change_website_password
+            self.root, text="Submit", width=custom_btn_width, font=self.custom_font, command=self.change_website_password
             )
 
         # Change website username btn (hidden initially)
         self.change_website_username_btn = tk.Button(
-            self.root, text="Change Website-username", font=self.custom_font, width=20, command=self.show_change_website_username
+            self.root, text="Change Website-username", font=self.custom_font, width=custom_btn_width, command=self.show_change_website_username
             )
 
         # Change website username fields (hidden initially)
         self.change_website_username_label = tk.Label(self.root, font=self.custom_font, text="New username:")
-        self.change_website_username_entry = tk.Entry(self.root)
+        self.change_website_username_entry = tk.Entry(self.root, width=custom_entry_width)
         self.change_website_username_submit = tk.Button(
-            self.root, text="Submit", width=20, font=self.custom_font, command=self.change_website_username
+            self.root, text="Submit", width=custom_btn_width, font=self.custom_font, command=self.change_website_username
             )
 
         # Delete password btn (hidden initially)
         self.delete_password_btn = tk.Button(
-            self.root, text="Delete Password", width=20, font=self.custom_font, command=self.show_delete_password
+            self.root, text="Delete Password", width=custom_btn_width, font=self.custom_font, command=self.show_delete_password
             )
 
         # Delete password fields (hidden initially)
         self.website_name_label = tk.Label(self.root, font=self.custom_font, text="Name of the website/service:")
-        self.website_name_entry = tk.Entry(self.root)
-        self.delete_password_submit = tk.Button(self.root, text="Submit", width=20, font=self.custom_font, command=self.delete_password)
+        self.website_name_entry = tk.Entry(self.root, width=custom_entry_width)
+        self.delete_password_submit = tk.Button(self.root, text="Submit", width=custom_btn_width, font=self.custom_font, command=self.delete_password)
 
         # View passwords btn (hidden initially)
-        self.view_passwords_btn = tk.Button(self.root, text="View Passwords", width=20, font=self.custom_font, command=self.show_view_passwords)
+        self.view_passwords_btn = tk.Button(self.root, text="View Passwords", width=custom_btn_width, font=self.custom_font, command=self.show_view_passwords)
 
         # View passwords btn (hidden initially)
-        self.view_passwords_submit = tk.Button(self.root, text="Show My Passwords", width=20, font=self.custom_font, command=self.view_passwords)
+        self.view_passwords_submit = tk.Button(self.root, text="Show My Passwords", width=custom_btn_width, font=self.custom_font, command=self.view_passwords)
 
     def hide_all_widgets(self):
         """Hide all widgets from the current UI layout."""
@@ -190,7 +192,7 @@ class PasswordManagerGui:
             popup.geometry(f"{popup_width}x{popup_height}+{x_offset}+{y_offset}")
 
         popup.after(150, adjust_position)
-        entry = tk.Entry(popup, justify="center")
+        entry = tk.Entry(popup, justify="center", width=20)
         entry.insert(0, password)
         entry.config(state="readonly")
         entry.pack(pady=10)
