@@ -7,7 +7,7 @@ from tkinter import messagebox
 
 from cryptography.fernet import Fernet
 
-
+# Ensure the key is generated only one time
 if not os.path.exists("key/encryption_key.key"):
     encryption_key = Fernet.generate_key()
     with open("key/encryption_key.key", "wb") as f:
@@ -16,7 +16,6 @@ with open("key/encryption_key.key", "rb") as f:
     encryption_key = f.read()
 cipher = Fernet(encryption_key)
 
-os.makedirs("data", exist_ok=True)
 conn = sqlite3.connect("data/password_manager.db")
 cursor = conn.cursor()
 
@@ -382,6 +381,9 @@ class PasswordManagerGui:
         website_exists = [website in [w[0] for w in websites]][0]
         if website_exists:
             new_username = self.change_website_username_entry.get()
+            if not new_username.strip():
+                messagebox.showerror("Error", "Username can not be empty!")
+                return
             self.cursor.execute(
                 "UPDATE passwords set username = ? WHERE user_id = ? and website = ?",
                 (new_username, user_id, website)
@@ -427,19 +429,35 @@ class PasswordManagerGui:
     def view_passwords(self):
         user_id = self.get_user_id(self.current_user)
         self.cursor.execute(
-            "SELECT user_id, website, username, password FROM passwords WHERE user_id = ?",
-            (user_id,))
+            "SELECT website, username, password FROM passwords WHERE user_id = ?", (user_id,))
         passwords = self.cursor.fetchall()
         if passwords:
+            popup = tk.Toplevel()
+            popup.title("Stored Passwords")
+            popup.geometry("500x300")
+            popup.update_idletasks()
+
+            def adjust_position():
+                popup_width = popup.winfo_width()
+                popup_height = popup.winfo_height()
+                screen_width = popup.winfo_screenwidth()
+                screen_height = popup.winfo_screenheight()
+                x_offset = (screen_width // 2) - (popup_width // 2)
+                y_offset = (screen_height // 2) - (popup_height // 2)
+                popup.geometry(f"{popup_width}x{popup_height}+{x_offset}+{y_offset}")
+
+            popup.after(150, adjust_position)
+            text_area = tk.Text(popup, wrap="word")
+            text_area.pack()
+            text_content = "Please note that changes to this file does not have an impact on the real date stored in database.\n\n"
+            text_content += "Your Passwords:\n\n"
             for password in passwords:
-                decrypted_password = self.cipher.decrypt(password[3].encode()).decode()
-                messagebox.showinfo(
-                    "Your Passwords",
-                    f"User ID: {password[0]} - Website/Service: {password[1]} - Username: {password[2]} - Password: {decrypted_password}"
-                    )
-            self.show_user_dashboard()
+                decrypted_password = self.cipher.decrypt(password[2].encode()).decode()
+                text_content += f"Website: {password[0]} | Username: {password[1]} | Password: {decrypted_password}\n\n"
+            text_area.insert(index="1.0", chars=text_content)
+            text_area.config(state="normal")
         else:
-            messagebox.showerror("Error", "You haven't add any passwords yet.")
+            tk.messagebox.showerror("Error", "You haven't added any passwords yet.")
 
     def run(self):
         self.root.mainloop()
